@@ -1,0 +1,17 @@
+[package]
+name = "playground"
+version = "0.1.0"
+authors = ["Dmitriy Kropivnitskiy <dmitriyk@rabweb.com>"]
+
+[features]
+debug = ["gl/debug"]
+
+[dependencies]
+gl = { path = "lib/gl" }
+sdl2 = { version = "0.31.0", features = ["bundled", "static-link"] }
+image = "*"
+nalgebra = "*"
+failure = "*"
+
+[build-dependencies]
+walkdir = "2.1"
