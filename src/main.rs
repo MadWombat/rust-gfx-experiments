@@ -10,6 +10,7 @@ pub mod resources;
 use failure::err_msg;
 use resources::Resources;
 
+use std::f32::consts::PI;
 use std::ffi::{CString};
 use na::{Vector3, Matrix4};
 
@@ -110,13 +111,9 @@ fn run() -> Result<(), failure::Error> {
         gl.ClearColor(0.3, 0.3, 0.5, 1.0);
     }
 
-    let transform = Matrix4::from_scaled_axis(&Vector3::z() * 3.14);
+    program.set_used();
 
-    unsafe {
-        program.set_used();
-        let uni_loc = gl.GetUniformLocation(program.id(), CString::new("transform")?.as_ptr());
-        gl.UniformMatrix4fv(uni_loc, 1, gl::FALSE, transform.as_slice().as_ptr());
-    }
+    let mut iter = (0..200).map(|x| { x as f32 * 0.01 * PI }).cycle();
 
     let mut event_pump = sdl.event_pump().map_err(err_msg)?;
     'main: loop {
@@ -133,6 +130,12 @@ fn run() -> Result<(), failure::Error> {
         }
 
         program.set_used();
+
+        let transform = Matrix4::new_rotation(&Vector3::x() * iter.next().unwrap());
+        unsafe {
+            let uni_loc = gl.GetUniformLocation(program.id(), CString::new("transform")?.as_ptr());
+            gl.UniformMatrix4fv(uni_loc, 1, gl::FALSE, transform.as_slice().as_ptr());
+        }
 
         unsafe {
             gl.ActiveTexture(gl::TEXTURE0);
