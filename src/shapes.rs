@@ -16,7 +16,7 @@ impl Vertix {
 #[derive(Debug)]
 pub struct Shape {
     vertices: Vec<Vertix>,
-    indices: Vec<usize>,
+    indices: Vec<i32>,
 }
 
 impl Shape {
@@ -24,18 +24,6 @@ impl Shape {
         /* generate a rectangle with 0.0 as bottom left */
         Shape {
             vertices: vec![
-                /* top right */
-                Vertix { 
-                    coords: [width, height, 0.0],
-                    color: [1.0, 1.0, 1.0],
-                    texcoords: [1.0, 1.0],
-                },
-                /* bottom right */
-                Vertix { 
-                    coords: [width, 0.0, 0.0],
-                    color: [1.0, 1.0, 1.0],
-                    texcoords: [0.0, 1.0],
-                },
                 /* bottom left */
                 Vertix { 
                     coords: [0.0, 0.0, 0.0],
@@ -48,12 +36,24 @@ impl Shape {
                     color: [1.0, 1.0, 1.0],
                     texcoords: [0.0, 1.0],
                 },
+                /* top right */
+                Vertix { 
+                    coords: [width, height, 0.0],
+                    color: [1.0, 1.0, 1.0],
+                    texcoords: [1.0, 1.0],
+                },
+                /* bottom right */
+                Vertix { 
+                    coords: [width, 0.0, 0.0],
+                    color: [1.0, 1.0, 1.0],
+                    texcoords: [0.0, 1.0],
+                },
                 ],
-            indices: vec![0, 1, 3, 1, 2, 3],
+            indices: vec![0, 1, 2, 0, 3, 2],
         }
     }
 
-    pub fn indices(&self) -> Vec<usize> {
+    pub fn indices(&self) -> Vec<i32> {
         self.indices.clone()
     }
 

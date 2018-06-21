@@ -6,6 +6,7 @@ extern crate nalgebra as na;
 
 pub mod render;
 pub mod resources;
+pub mod shapes;
 
 use failure::err_msg;
 use resources::Resources;
@@ -43,17 +44,9 @@ fn run() -> Result<(), failure::Error> {
 
     let tex = render::Texture::from_res(&gl, &res, "textures/wall.jpg")?;
 
-    let vertices: Vec<f32> = vec![
-         0.5, -0.5, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, // top left
-         0.5,  0.5, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, // top right
-        -0.5, -0.5, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, // bot left
-        -0.5,  0.5, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, // bot right
-    ];
-
-    let indices: Vec<u32> = vec![
-        0, 1, 3,
-        0, 2, 3,
-    ];
+    let rect = shapes::Shape::rect(1.0, 1.0);
+    let vertices: Vec<f32> = rect.vertices();
+    let indices: Vec<i32> = rect.indices();
 
     let mut vbo: gl::types::GLuint = 0;
     let mut vao: gl::types::GLuint = 0;
@@ -76,7 +69,7 @@ fn run() -> Result<(), failure::Error> {
         gl.BindBuffer(gl::ELEMENT_ARRAY_BUFFER, ebo);
 
         gl.BufferData(gl::ELEMENT_ARRAY_BUFFER,
-                      (indices.len() * std::mem::size_of::<u32>()) as gl::types::GLsizeiptr,
+                      (indices.len() * std::mem::size_of::<i32>()) as gl::types::GLsizeiptr,
                       indices.as_ptr() as *const gl::types::GLvoid,
                       gl::STATIC_DRAW);
 
@@ -113,6 +106,8 @@ fn run() -> Result<(), failure::Error> {
 
     program.set_used();
 
+    let transform = Matrix4::new_translation(&Vector3::new(-0.5, -0.5, 0.0));
+    
     let mut iter = (0..200).map(|x| { x as f32 * 0.01 * PI }).cycle();
 
     let mut event_pump = sdl.event_pump().map_err(err_msg)?;
@@ -131,7 +126,9 @@ fn run() -> Result<(), failure::Error> {
 
         program.set_used();
 
-        let transform = Matrix4::new_rotation(&Vector3::x() * iter.next().unwrap());
+        let transform = transform * Matrix4::new_rotation(&Vector3::y() * iter.next().unwrap());
+        transform.append_translation(&Vector3::new(0.5, 0.5, 0.0));
+
         unsafe {
             let uni_loc = gl.GetUniformLocation(program.id(), CString::new("transform")?.as_ptr());
             gl.UniformMatrix4fv(uni_loc, 1, gl::FALSE, transform.as_slice().as_ptr());
@@ -142,7 +139,7 @@ fn run() -> Result<(), failure::Error> {
             gl.BindTexture(gl::TEXTURE_2D, tex.id());
 
             gl.BindVertexArray(vao);
-            gl.DrawElements(gl::TRIANGLES, 6, gl::UNSIGNED_INT, std::ptr::null());
+            gl.DrawElements(gl::TRIANGLES, indices.len() as i32, gl::UNSIGNED_INT, std::ptr::null());
             gl.BindVertexArray(0);
         }
 
